@@ -1,32 +1,32 @@
 import streamlit as st
-import leafmap.foliumap as leafmap
+from streamlit_folium import st_folium
+import folium
 
-markdown = """
-A Streamlit map template
-<https://github.com/opengeos/streamlit-map-template>
-"""
+st.set_page_config(page_title="彰化地區互動地圖", page_icon="🗺️", layout="wide")
 
-st.sidebar.title("About")
-st.sidebar.info(markdown)
-logo = "https://i.imgur.com/UbOXYAU.png"
-st.sidebar.image(logo)
+st.title("彰化地區互動式地圖")
 
+initial_coordinates = [24.0685, 120.5571]
+zoom_level = 11
 
-st.title("Interactive Map")
+m = folium.Map(location=initial_coordinates, zoom_start=zoom_level, tiles="OpenStreetMap")
 
-col1, col2 = st.columns([4, 1])
-options = list(leafmap.basemaps.keys())
-index = options.index("OpenTopoMap")
+with st.sidebar:
+    st.header("地圖設定")
+    add_marker = st.checkbox("加入自訂標記點")
+    if add_marker:
+        lat = st.number_input("緯度 (Lat)", value=24.0685)
+        lon = st.number_input("經度 (Lon)", value=120.5571)
+        marker_info = st.text_input("標記點說明", "這是我的標記點")
+        if st.button("新增標記"):
+            folium.Marker([lat, lon], popup=marker_info).add_to(m)
 
-with col2:
+folium.Marker(
+    location=[24.0813, 120.5381],
+    popup="彰化火車站",
+    icon=folium.Icon(icon="train", color="blue"),
+).add_to(m)
 
-    basemap = st.selectbox("Select a basemap:", options, index)
+folium.LayerControl().add_to(m)
 
-
-with col1:
-
-    m = leafmap.Map(
-        locate_control=True, latlon_control=True, draw_export=True, minimap_control=True
-    )
-    m.add_basemap(basemap)
-    m.to_streamlit(height=700)
+st_folium(m, width=700, height=500)
